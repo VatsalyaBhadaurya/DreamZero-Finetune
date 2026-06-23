@@ -9,4 +9,4 @@ source "$HERE/config.env"
 cd "$DREAMZERO_ROOT"
 
 PORT="${PORT:-5000}"
-python test_client_AR.py --port "$PORT"
+$PY test_client_AR.py --port "$PORT"

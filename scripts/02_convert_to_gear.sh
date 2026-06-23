@@ -10,7 +10,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/config.env"
 cd "$DREAMZERO_ROOT"
 
-python scripts/data/convert_lerobot_to_gear.py \
+$PY scripts/data/convert_lerobot_to_gear.py \
     --dataset-path "$DATA_ROOT" \
     --embodiment-tag "$EMB" \
     --state-keys "$STATE_KEYS" \

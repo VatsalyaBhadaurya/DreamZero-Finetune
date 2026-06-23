@@ -10,12 +10,12 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/config.env"
 
 # lerobot provides LeRobotDataset.create (handles parquet + mp4 + meta).
-python -c "import lerobot" 2>/dev/null || pip install --user lerobot h5py
+$PY -c "import lerobot" 2>/dev/null || $PY -m pip install --user lerobot h5py
 
 LIMIT_ARG=""
 [ -n "${LIMIT:-}" ] && LIMIT_ARG="--limit $LIMIT"
 
-python "$HERE/hdf5_to_lerobot.py" \
+$PY "$HERE/hdf5_to_lerobot.py" \
     --src "$HDF5_SRC" \
     --out "$DATA_ROOT" \
     --repo-id "${EMB}/pick_block" \

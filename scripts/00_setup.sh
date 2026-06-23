@@ -20,9 +20,9 @@ cd "$DREAMZERO_ROOT"
 # --- Python env + deps -------------------------------------------------------
 # Requires Python 3.10/3.11, PyTorch 2.8+, CUDA 12.9+ per the repo.
 echo ">> Installing dependencies (pyproject.toml)"
-python -m pip install --upgrade pip
-python -m pip install -e .
-python -m pip install "huggingface_hub[cli]" deepspeed wandb decord
+$PY -m pip install --upgrade pip
+$PY -m pip install -e .
+$PY -m pip install "huggingface_hub[cli]" deepspeed wandb decord
 
 # --- Download checkpoints -----------------------------------------------------
 mkdir -p "$DREAMZERO_ROOT/checkpoints"

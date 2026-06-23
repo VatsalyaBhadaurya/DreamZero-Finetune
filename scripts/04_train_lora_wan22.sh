@@ -20,7 +20,7 @@ cd "$DREAMZERO_ROOT"
 
 EXPERIMENT_PY="$DREAMZERO_ROOT/groot/vla/experiment/experiment.py"
 
-python -m torch.distributed.run --nproc_per_node "$NUM_GPUS" --standalone "$EXPERIMENT_PY" \
+$PY -m torch.distributed.run --nproc_per_node "$NUM_GPUS" --standalone "$EXPERIMENT_PY" \
     report_to=wandb \
     data=dreamzero/${EMB}_relative \
     wandb_project=dreamzero \

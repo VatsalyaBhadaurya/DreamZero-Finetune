@@ -16,7 +16,7 @@ echo ">> Checking dataset at: $DATA_ROOT"
 
 if [ -f "$DATA_ROOT/meta/info.json" ]; then
     echo ">> info.json keys (need: features, total_episodes, fps):"
-    python - "$DATA_ROOT/meta/info.json" <<'PY'
+    $PY - "$DATA_ROOT/meta/info.json" <<'PY'
 import json, sys
 info = json.load(open(sys.argv[1]))
 for k in ("features", "total_episodes", "fps"):

@@ -13,7 +13,7 @@ PORT="${PORT:-5000}"
 MODEL_PATH="${MODEL_PATH:-$OUTPUT_DIR}"
 SERVE_GPUS="${SERVE_GPUS:-$NUM_GPUS}"
 
-python -m torch.distributed.run --standalone --nproc_per_node="$SERVE_GPUS" \
+$PY -m torch.distributed.run --standalone --nproc_per_node="$SERVE_GPUS" \
     socket_test_optimized_AR.py \
     --port "$PORT" \
     --enable-dit-cache \
