@@ -24,7 +24,10 @@ FPS = int(os.environ.get("FPS", "30"))
 
 # Sub-keys derived from config.env (names only).
 REL_KEYS = os.environ.get("RELATIVE_ACTION_KEYS", "joint_pos gripper_pos").split()
-VIDEO_KEYS = [f"video.cam{i}" for i in range(NUM_VIEWS)]
+# Camera names must match the LeRobot observation.images.<name> keys (and thus
+# the GEAR modality.json video sub-keys). Falls back to cam0..camN if unset.
+_cam_names = os.environ.get("CAM_NAMES", "").split() or [f"cam{i}" for i in range(NUM_VIEWS)]
+VIDEO_KEYS = [f"video.{c}" for c in _cam_names]
 STATE_MKEYS = [f"state.{k}" for k in REL_KEYS]
 ACTION_MKEYS = [f"action.{k}" for k in REL_KEYS]
 
