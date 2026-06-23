@@ -116,7 +116,8 @@ train_dataset:
     print(f"   wrote {f.relative_to(ROOT)}")
 
 
-def emit_base_snippet():
+def build_blocks():
+    """The modality_config_<EMB> + transform_<EMB> YAML blocks (no map entries)."""
     video_keys = "\n".join(f"      - {k}" for k in VIDEO_KEYS)
     state_keys = "\n".join(f"      - {k}" for k in STATE_MKEYS)
     action_keys = "\n".join(f"      - {k}" for k in ACTION_MKEYS)
@@ -125,9 +126,7 @@ def emit_base_snippet():
     deltas25 = ", ".join(str(i) for i in range(25))
     deltas24 = ", ".join(str(i) for i in range(24))
 
-    snippet = f"""
-# ====================== PASTE INTO base_48_wan_fine_aug_relative.yaml ======================
-modality_config_{EMB}:
+    return f"""modality_config_{EMB}:
   video:
     _target_: groot.vla.data.dataset.ModalityConfig
     delta_indices: [{deltas25}]
@@ -180,36 +179,71 @@ transform_{EMB}:
       state_concat_order: ${{modality_config_{EMB}.state.modality_keys}}
       action_concat_order: ${{modality_config_{EMB}.action.modality_keys}}
     - ${{model_specific_transform}}
-
-# Then EXTEND the existing maps at the bottom of the file (add these lines,
-# do NOT create duplicate top-level keys):
-#   modality_configs:
-#     {EMB}: ${{modality_config_{EMB}}}
-#   transforms:
-#     {EMB}: ${{transform_{EMB}}}
-#   metadata_versions:
-#     {EMB}: '0221'
-#   fps:
-#     {EMB}: {FPS}
-# ==========================================================================================
 """
-    out = ROOT / f"scripts/_base_snippet_{EMB}.yaml"
-    out.write_text(snippet)
-    print(snippet)
-    print(f">> Snippet also saved to {out}")
+
+
+BASE_YAML = "groot/vla/configs/data/dreamzero/base_48_wan_fine_aug_relative.yaml"
+
+
+def patch_base_yaml():
+    """Append the blocks and extend the 4 maps in the base config, idempotently."""
+    f = ROOT / BASE_YAML
+    if not f.exists():
+        sys.exit(f"!! base config not found: {f}")
+    txt = f.read_text()
+
+    # one-time backup
+    bak = f.with_suffix(".yaml.orig")
+    if not bak.exists():
+        bak.write_text(txt)
+
+    # also save the standalone snippet for reference / manual fallback
+    (ROOT / f"scripts/_base_snippet_{EMB}.yaml").write_text(build_blocks())
+
+    changed = False
+    if f"modality_config_{EMB}:" not in txt:
+        txt = txt.rstrip() + "\n\n" + build_blocks()
+        changed = True
+        print("   base yaml: appended modality_config + transform blocks")
+    else:
+        print(f"   base yaml: modality_config_{EMB} already present")
+
+    maps = [
+        ("modality_configs", f"${{modality_config_{EMB}}}"),
+        ("transforms", f"${{transform_{EMB}}}"),
+        ("metadata_versions", "'0221'"),
+        ("fps", str(FPS)),
+    ]
+    for name, val in maps:
+        entry = f"  {EMB}: {val}"
+        if re.search(rf"(?m)^\s+{re.escape(EMB)}:\s", txt) and entry in txt:
+            print(f"   map '{name}': already has {EMB}")
+            continue
+        # match the map header line (a key with no inline value)
+        m = re.search(rf"(?m)^{name}:[ \t]*$", txt)
+        if not m:
+            print(f"   !! map '{name}:' not found — add manually: {entry}")
+            continue
+        txt = txt[: m.end()] + "\n" + entry + txt[m.end():]
+        changed = True
+        print(f"   map '{name}': added {EMB}")
+
+    if changed:
+        f.write_text(txt)
+        print(f"   wrote {BASE_YAML}  (backup: {bak.name})")
+    else:
+        print("   base yaml: no changes needed")
 
 
 def main():
     if not (ROOT / "groot").exists():
         sys.exit(f"DREAMZERO_ROOT={ROOT} has no groot/ — clone the repo first (00_setup.sh).")
-    print(f">> Registering embodiment '{EMB}' ({NUM_VIEWS} cameras)")
+    print(f">> Registering embodiment '{EMB}' ({NUM_VIEWS} cameras): {VIDEO_KEYS}")
     patch_enum()
     patch_valid_list()
     write_dataset_yaml()
-    emit_base_snippet()
-    print("\n>> ACTION REQUIRED: paste the block above into")
-    print("   groot/vla/configs/data/dreamzero/base_48_wan_fine_aug_relative.yaml")
-    print("   then run scripts/04_train_lora_wan22.sh")
+    patch_base_yaml()
+    print(f"\n>> Done. '{EMB}' registered and base config patched. Ready to train.")
 
 
 if __name__ == "__main__":
