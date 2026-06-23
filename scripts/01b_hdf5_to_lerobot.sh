@@ -19,7 +19,6 @@ LIMIT_ARG=""
 $PY "$HERE/hdf5_to_lerobot.py" \
     --src "$HDF5_SRC" \
     --out "$DATA_ROOT" \
-    --repo-id "${EMB}/pick_block" \
     --fps "$FPS" \
     --task "$TASK_INSTRUCTION" \
     $LIMIT_ARG
