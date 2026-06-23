@@ -20,10 +20,14 @@ cd "$DREAMZERO_ROOT"
 
 EXPERIMENT_PY="$DREAMZERO_ROOT/groot/vla/experiment/experiment.py"
 
+# wandb: export entity/name so the run lands in the right place (no-op if unset).
+[ -n "$WANDB_ENTITY" ] && export WANDB_ENTITY
+export WANDB_NAME="$WANDB_RUN_NAME"
+
 $PY -m torch.distributed.run --nproc_per_node "$NUM_GPUS" --standalone "$EXPERIMENT_PY" \
-    report_to=wandb \
+    report_to=$REPORT_TO \
     data=dreamzero/${EMB}_relative \
-    wandb_project=dreamzero \
+    wandb_project=$WANDB_PROJECT \
     train_architecture=lora \
     num_frames=33 \
     action_horizon=24 \

@@ -9,8 +9,9 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$HERE/config.env"
 
-# lerobot provides LeRobotDataset.create (handles parquet + mp4 + meta).
-$PY -c "import lerobot" 2>/dev/null || $PY -m pip install --user lerobot h5py
+# No lerobot dependency: we write the v2.0 layout directly (pyarrow + ffmpeg).
+$PY -c "import h5py, pyarrow, numpy" 2>/dev/null || $PY -m pip install --user h5py pyarrow numpy
+command -v ffmpeg >/dev/null || { echo "ERROR: ffmpeg not on PATH (needed for H.264 video encode)"; exit 1; }
 
 LIMIT_ARG=""
 [ -n "${LIMIT:-}" ] && LIMIT_ARG="--limit $LIMIT"
